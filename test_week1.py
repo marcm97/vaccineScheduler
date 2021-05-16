@@ -8,6 +8,7 @@ from utils import *
 from covid19_vaccine import COVID19Vaccine as covid
 # from vaccine_patient import VaccinePatient as patient
 
+# code provided for this class
 class TestDB(unittest.TestCase):
 
     def test_db_connection(self):
@@ -19,7 +20,6 @@ class TestDB(unittest.TestCase):
             self.conn = self.connection_manager.Connect()
         except Exception:
             self.fail("Connection to databse failed")
-
 
 class TestVaccine(unittest.TestCase):
     def test_init(self):
@@ -151,9 +151,8 @@ class TestVaccine(unittest.TestCase):
                     # clear the tables if an exception occurred
                     clear_tables(sqlClient)
                     self.fail("Reserve Doses verification failed")
-
-        
-
+     
+# code provided for this class
 class TestVaccineCaregiver(unittest.TestCase):
     def test_init(self):
         with SqlConnectionManager(Server=os.getenv("Server"),

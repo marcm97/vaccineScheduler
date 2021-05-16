@@ -83,6 +83,6 @@ EXECUTE initDataModel
 
 
 -- DELETE FROM Vaccine
--- SELECT *
--- FROM Vaccine
--- WHERE VaccineName = 'Pfizer'
+SELECT *
+FROM Vaccine
+WHERE VaccineName = 'Pfizer'

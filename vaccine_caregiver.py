@@ -1,3 +1,4 @@
+#code provided as startup code
 from datetime import datetime
 from datetime import timedelta
 import pymssql
