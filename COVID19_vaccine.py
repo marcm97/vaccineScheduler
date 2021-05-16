@@ -2,18 +2,14 @@ import pymssql
 
 class COVID19Vaccine:
 
-    def __init__(self,name,doses,cursor):
-        self.sqltext = "INSERT INTO Vaccine (VaccineName, Reserved,Used, Available,DoseCount) VALUES ('" + name + "','0','0','0',{doses})".format(doses =doses)
-        self.vaccineId = 0
+    def __init__(self,name,supplier,doses_per_patient,days_between_doses,cursor):
+        self.sqltext = "INSERT INTO Vaccines (VaccineName, VaccineSupplier, AvailableDoses, ReservedDoses, TotalDoses, DosesPerPatient, DaysBetweenDoses) VALUES ('" + name + "','" + supplier + "',0,0,0,{doses},{days})".format(doses =doses_per_patient,days = days_between_doses)
         try: 
             cursor.execute(self.sqltext)
             cursor.connection.commit()
-            cursor.execute("SELECT @@IDENTITY AS 'Identity'; ")
-            _identityRow = cursor.fetchone()
-            self.vaccineId = _identityRow['Identity']
+
             # cursor.connection.commit()
-            print('Query executed successfully. Vaccine: ' + name 
-            +  ' added to the database using Vaccine ID = ' + str(self.vaccineId))
+            print('Query executed successfully. Vaccine: ' + name)
         except pymssql.Error as db_err:
             print("Database Programming Error in SQL Query processing for Vaccine! ")
             print("Exception code: " + str(db_err.args[0]))
@@ -24,7 +20,7 @@ class COVID19Vaccine:
     def AddDoses(self,vaccineName,count,cursor):
 
         
-        self.sqltext = "UPDATE Vaccine SET Available =Available + {count} WHERE VaccineName = '{name}'".format(count= count, name = vaccineName)
+        self.sqltext = "UPDATE Vaccines SET AvailableDoses =AvailableDoses + {count} ,TotalDoses = TotalDoses + {count} WHERE VaccineName = '{name}'".format(count= count, name = vaccineName)
   
 
         try:
@@ -42,17 +38,17 @@ class COVID19Vaccine:
 
     def ReserveDoses(self, vaccineName, cursor):
 
-        sqltext = "SELECT * FROM Vaccine WHERE VaccineName = '{name}'".format(name = vaccineName)
+        sqltext = "SELECT * FROM Vaccines WHERE VaccineName = '{name}'".format(name = vaccineName)
         try:
             cursor.execute(sqltext)
             rows  = cursor.fetchall()
             if len(rows)==0:
                 print("Vaccine Not Available")
-            elif rows[0]["Available"]<rows[0]['DoseCount']:
+            elif rows[0]["AvailableDoses"]<rows[0]['DosesPerPatient']:
                 print("Vaccine Not Available")
             else:
-                doseCount = rows[0]['DoseCount']
-                self.sqltext = "UPDATE Vaccine SET Available =Available-{nums}, Reserved = Reserved+{nums}".format(nums = doseCount)
+                doseCount = rows[0]['DosesPerPatient']
+                self.sqltext = "UPDATE Vaccines SET AvailableDoses =AvailableDoses-{nums}, ReservedDoses = ReservedDoses+{nums}".format(nums = doseCount)
                 cursor.execute(self.sqltext)
                 cursor.connection.commit()
                 print("Vaccine Reservation Successful")

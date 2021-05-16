@@ -9,7 +9,11 @@ def clear_tables(client):
     client.commit()
 
     sqlQuery = '''
-               DELETE FROM Vaccine
+               Truncate Table VaccineAppointments
+                Truncate Table Vaccines
+                Truncate Table CareGiverSchedule
+                Delete From Patients
+                Delete From Caregivers
                '''
     client.cursor().execute(sqlQuery)
     client.commit()
