@@ -7,3 +7,9 @@ def clear_tables(client):
                '''
     client.cursor().execute(sqlQuery)
     client.commit()
+
+    sqlQuery = '''
+               DELETE FROM Vaccine
+               '''
+    client.cursor().execute(sqlQuery)
+    client.commit()
