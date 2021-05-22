@@ -6,28 +6,58 @@ import traceback
 
 from sql_connection_manager import SqlConnectionManager
 from vaccine_caregiver import VaccineCaregiver
-from enums import *
+from enums import AppointmentStatus
 from utils import *
-# from covid19_vaccine import COVID19Vaccine as covid
-# from vaccine_patient import VaccinePatient as patient
+from COVID19_vaccine import COVID19Vaccine as covid
+from vaccine_patient import VaccinePatient as patient
 
 
 class VaccineReservationScheduler:
 
     def __init__(self):
-        return
+        pass
 
-    def PutHoldOnAppointmentSlot(self, cursor):
+    def PutHoldOnAppointmentSlot(self, cursor, date = datetime.datetime.now()):
         ''' Method that reserves a CareGiver appointment slot &
         returns the unique scheduling slotid
         Should return 0 if no slot is available  or -1 if there is a database error'''
-        # Note to students: this is a stub that needs to replaced with your code
+
         self.slotSchedulingId = 0
-        self.getAppointmentSQL = "SELECT something..."
+        self.getAppointmentSQL = '''SELECT TOP 1 * 
+                                    FROM CareGiverSchedule 
+                                    LEFT JOIN AppointmentStatusCodes 
+                                    ON CareGiverSchedule.SlotStatus = AppointmentStatusCodes.StatusCodeId 
+                                    WHERE AppointmentStatusCodes.StatusCodeId = 0
+                                    AND WorkDay>'{date}'
+                                    
+  '''.format(date = date.strftime("%Y-%m-%d"))
         try:
             cursor.execute(self.getAppointmentSQL)
-            cursor.connection.commit()
-            return self.slotSchedulingId
+            rows  = cursor.fetchall()
+
+            if len(rows)==0:
+                print("No slots available")
+                self.slotSchedulingId
+            else:
+                self.slotSchedulingId = rows[0]["CaregiverSlotSchedulingId"]
+                self.sqltext = '''UPDATE CareGiverSchedule 
+                                SET CareGiverSchedule.SlotStatus = 1 
+                                WHERE CaregiverSlotSchedulingId = {id}'''.format(id =self.slotSchedulingId)
+
+                try:
+                    cursor.execute(self.sqltext)
+                    cursor.connection.commit()
+                    print('Query executed successfully')
+                    return self.slotSchedulingId
+                except pymssql.Error as db_err:
+                    print("Database Programming Error in SQL Query processing for Vaccine! ")
+                    print("Exception code: " + str(db_err.args[0]))
+                    if len(db_err.args) > 1:
+                        print("Exception message: " + db_err.args[1])
+                    print("SQL text that resulted in an Error: " + self.sqltext)
+                    return -1
+            
+
         
         except pymssql.Error as db_err:
             print("Database Programming Error in SQL Query processing! ")
@@ -44,12 +74,25 @@ class VaccineReservationScheduler:
         returns the same slotid when the database update succeeds 
         returns 0 is there if the database update dails 
         returns -1 the same slotid when the database command fails
-        returns 21 if the slotid parm is invalid '''
+        returns -2 if the slotid parm is invalid '''
         # Note to students: this is a stub that needs to replaced with your code
+
+
+        # Patient: VaccineStatus = Scheduled
+
+        # Vaccine Inventory updated
+
+        # Vaccine Appointment Slot Status
+
+        #Caregiver Schedule - Vaccine Appointment ID, Slot Status
+
         if slotid < 1:
             return -2
         self.slotSchedulingId = slotid
-        self.getAppointmentSQL = "SELECT something... "
+        self.getAppointmentSQL = '''SELECT * 
+                                    FROM CareGiverSchedule 
+                                    LEFT JOIN AppointmentStatusCodes 
+                                    ON CareGiverSchedule.CaregiverId = {id}'''.format(id =  self.slotSchedulingId)
         try:
             cursor.execute(self.getAppointmentSQL)
             return self.slotSchedulingId

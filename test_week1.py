@@ -6,7 +6,8 @@ from vaccine_caregiver import VaccineCaregiver
 from enums import *
 from utils import *
 from COVID19_vaccine import COVID19Vaccine as covid
-# from vaccine_patient import VaccinePatient as patient
+from vaccine_patient import VaccinePatient as patient
+from vaccine_reservation_scheduler import VaccineReservationScheduler
 
 
 class TestDB(unittest.TestCase):
@@ -219,6 +220,116 @@ class TestVaccineCaregiver(unittest.TestCase):
                     clear_tables(sqlClient)
                     self.fail("CareGiverSchedule verification failed")
 
+
+class TestVaccineReservationScheduler(unittest.TestCase):
+    def test_init(self):
+        with SqlConnectionManager(Server=os.getenv("Server"),
+                                  DBname=os.getenv("DBName"),
+                                  UserId=os.getenv("UserID"),
+                                  Password=os.getenv("Password")) as sqlClient:
+            with sqlClient.cursor(as_dict=True) as cursor:
+                try:
+                    # clear the tables before testing
+                    clear_tables(sqlClient)
+
+                    # create a new VaccineCaregiver object
+                    self.caregiver_a = VaccineCaregiver(name="Steve Ma",
+                                                    cursor=cursor)
+                    #create a reservation 
+                    self.reservation_a = VaccineReservationScheduler()
+
+                    self.reservedId = self.reservation_a.PutHoldOnAppointmentSlot(cursor =cursor)
+
+                    sqlQuery = '''
+                               SELECT *
+                               FROM CareGiverSchedule 
+                               WHERE CaregiverSlotSchedulingId = {id}
+                               '''.format(id = self.reservedId)
+                    cursor.execute(sqlQuery)
+                    rows = cursor.fetchall()
+
+                    if len(rows) < 1:
+                        self.fail("No slot Available")
+
+                    if rows[0]['SlotStatus']!=1:
+                        self.fail("Slot wasn't reserved")
+                    # clear the tables after testing, just in-case
+                    # clear_tables(sqlClient)
+                    print(rows[0])
+                except Exception:
+                    # clear the tables if an exception occurred
+                    # clear_tables(sqlClient)
+                    self.fail("Creating caregiver failed")
+
+class TestPatients(unittest.TestCase):
+    def test_init(self):
+        with SqlConnectionManager(Server=os.getenv("Server"),
+                                  DBname=os.getenv("DBName"),
+                                  UserId=os.getenv("UserID"),
+                                  Password=os.getenv("Password")) as sqlClient:
+            with sqlClient.cursor(as_dict=True) as cursor:
+                try:
+                    # clear the tables before testing
+                    clear_tables(sqlClient)
+
+                    # create a new Patient object
+                    self.patient_a = patient(name='dj',cursor=cursor)
+                    
+                    sqlQuery = '''
+                               SELECT *
+                               FROM Patients
+                               WHERE PatientName = 'dj'
+                               '''
+                    cursor.execute(sqlQuery)
+                    rows = cursor.fetchall()
+
+                    if len(rows) < 1:
+                        self.fail("Patientnot found")
+
+                    # clear the tables after testing, just in-case
+                    clear_tables(sqlClient)
+                    print(rows[0])
+                except Exception:
+                    # clear the tables if an exception occurred
+                    # clear_tables(sqlClient)
+                    self.fail("Creating Patient failed")
+    def test_reservation(self):
+        with SqlConnectionManager(Server=os.getenv("Server"),
+                                  DBname=os.getenv("DBName"),
+                                  UserId=os.getenv("UserID"),
+                                  Password=os.getenv("Password")) as sqlClient:
+            with sqlClient.cursor(as_dict=True) as cursor:
+                try:
+                    # clear the tables before testing
+                    clear_tables(sqlClient)
+
+                    # create a new Patient object
+                    self.patient_a = patient(name='dj',cursor=cursor)
+                    # create a new VaccineCaregiver object
+                    self.caregiver_a = VaccineCaregiver(name="Steve Ma",
+                                                    cursor=cursor)
+                    #create a reservation 
+                    self.reservation_a = VaccineReservationScheduler()
+
+                    self.reservedId = self.reservation_a.PutHoldOnAppointmentSlot(cursor =cursor)
+                    self.patient_a.ReserveAppointment(self.reservedId,'Pfizer',cursor)
+                    
+                except Exception:
+                    # clear the tables if an exception occurred
+                    clear_tables(sqlClient)
+                    self.fail("Reservation failed")
+
+
+# class Test(unittest.TestCase):
+#     def test(self):
+#         #allocate 2 caregivers
+
+#         #add 2 doses of the vaccine
+
+#         #Initialize a patient
+
+#         #check for first 
+#         pass
 
 if __name__ == '__main__':
     unittest.main()
