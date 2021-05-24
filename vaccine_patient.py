@@ -5,7 +5,7 @@ class VaccinePatient:
     def __init__(self,name,cursor):
         self.patientId =0
         self.vaccine_name = ''
-        self.patientName = name
+        self.name = name
         self.first_VaccineAppointmentId = 0
         self.second_VaccineAppointmentId = 0
         self.insertPatientSQL = "INSERT INTO Patients (PatientName,VaccineStatus) VALUES ('" + name + "',0)"
@@ -70,6 +70,9 @@ class VaccinePatient:
                                 dose_number = 1
                                 )
                 cursor.execute(self.createAppointmentSQL)
+                cursor.execute("SELECT @@IDENTITY AS 'Identity'; ")
+                _identityRow = cursor.fetchone()
+                vaccine_id = _identityRow['Identity']
 
                 # flag as "Queued for first dose"
                 self.updatePatientSQL = '''
@@ -80,6 +83,7 @@ class VaccinePatient:
                     WHERE StatusCode = 'Queued for 1st Dose'
                 )'''
                 cursor.execute(self.updatePatientSQL)
+                return vaccine_id
 
 
 
@@ -95,7 +99,7 @@ class VaccinePatient:
 
         
 
-    def ScheduleAppointment(self,Vaccine):
+    def ScheduleAppointment(self,Vaccine,cursor):
         # Patient: VaccineStatus = Scheduled
         self.updatePatientSQL = '''
                 Update Patients
@@ -108,9 +112,14 @@ class VaccinePatient:
 
         # Vaccine Inventory updated
         self.sqltext = '''UPDATE Vaccines 
-                        SET ReservedDoses = ReservedDoses+1
-                        AND VaccineName = '{v_name}' '''.format(v_name = vaccine_name)
+                        SET ReservedDoses = ReservedDoses+1, AvailableDoses = AvailableDoses-1
+                        WHERE VaccineName = '{v_name}' '''.format(v_name = self.vaccine_name)
 
+        cursor.execute(self.sqltext)
+        # self.sqltext = '''SELECT * FROM Vaccines '''
+        # cursor.execute(self.sqltext)
+        # rows  = cursor.fetchall()
+        # print(rows)
         # Vaccine Appointment Slot Status
 
 

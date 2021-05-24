@@ -76,16 +76,17 @@ class TestPatient(unittest.TestCase):
                     self.vaccine_2.AddDoses("Moderna",3,cursor)
 
                      # create a new VaccineCaregiver object
-                    self.caregiver_a = VaccineCaregiver(name="Steve Ma",
+                    self.caregiver_a = VaccineCaregiver(name="John",
                                                     cursor=cursor)
-
+                    self.caregiver_b = VaccineCaregiver(name="Steve",
+                                                    cursor=cursor)
                     # create a new Patient object
 
                     self.patients = [patient(name='Marc',cursor=cursor),
-                                        patient(name='Marc2',cursor=cursor),
-                                        patient(name='Marc3',cursor=cursor),
-                                        patient(name='Marc4',cursor=cursor),
-                                        patient(name='Marc5',cursor=cursor)
+                                    patient(name='Marc2',cursor=cursor),
+                                    patient(name='Marc3',cursor=cursor),
+                                    patient(name='Marc4',cursor=cursor),
+                                    patient(name='Marc5',cursor=cursor)
                                     ]
                     # for each patient:
                     for patient_a in self.patients:
@@ -98,7 +99,6 @@ class TestPatient(unittest.TestCase):
                                 '''.format(name = vaccine_a.name)
                             cursor.execute(sqlQuery)
                             rows = cursor.fetchall()
-                            print(rows)
                             if len(rows)>0:
                                 if rows[0]['AvailableDoses']>=rows[0]['DosesPerPatient']:
                                 # if enough doses are available
@@ -113,10 +113,12 @@ class TestPatient(unittest.TestCase):
                                         print("No slots available in the next 3 weeks")
                                         break
                                     else:
-                                        patient_a.ReserveAppointment(self.reservedId,vaccine_a.name,cursor)
+                                        patient_a.first_VaccineAppointmentId = patient_a.ReserveAppointment(self.reservedId,vaccine_a.name,cursor)
                                         patient_a.vaccine_name = vaccine_a.name
-                                        # self.reservation_a.ScheduleAppointmentSlot(slotid = self.reservedId,cursor = cursor)
+                                        
                                         # 3) get second slot & reserve it 
+                                        self.reservation_a.ScheduleAppointmentSlot(slotid = self.reservedId,cursor = cursor)
+                                        patient_a.ScheduleAppointment(Vaccine = vaccine_a,cursor = cursor)
                     
                                         days_between_doses = int(rows[0]['DaysBetweenDoses'])
                                         if int(rows[0]['DosesPerPatient'])==2:
@@ -131,9 +133,10 @@ class TestPatient(unittest.TestCase):
                                                 print("second slot not available for, cancelling first appointment & checking other vaccines",vaccine_a.name)
                                                 continue
                                             else:
-                                                patient_a.ReserveAppointment(self.reservedId,vaccine_a.name,cursor)
+                                                patient_a.second_VaccineAppointmentId  = patient_a.ReserveAppointment(self.reservedId,vaccine_a.name,cursor)
                                                 patient_a.vaccine_name = vaccine_a.name
-                                                # self.reservation_a.ScheduleAppointmentSlot(slotid = self.reservedId,cursor = cursor)
+                                                self.reservation_a.ScheduleAppointmentSlot(slotid = self.reservedId,cursor = cursor)
+                                                patient_a.ScheduleAppointment(Vaccine = vaccine_a,cursor = cursor)
 
                                                 break
     
@@ -141,8 +144,11 @@ class TestPatient(unittest.TestCase):
                                     print(vaccine_a.name, "not enough doses available")
 
                         if patient_a.first_VaccineAppointmentId!=0:
-                            print("Reservation Successful for Patient" ,patient_a.name)
-                            cursor.commit()
+                            print("Reservation Successful for Patient!!!!!!!!!!!" ,patient_a.name)
+                            cursor.connection.commit()
+                        else:
+                            print("not successful")
+                        
 
 
 

@@ -31,7 +31,7 @@ class VaccineCaregiver:
         _now = datetime.now()
         _weeks_to_schedule.append(_now)
         _one_week_time_delta = timedelta(days=7)
-        _weeks_ahead = 4
+        _weeks_ahead = 8
         _lcv = 0
         while _lcv < _weeks_ahead:
             _now = _now + _one_week_time_delta
