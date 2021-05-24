@@ -29,36 +29,36 @@ class VaccineReservationScheduler:
                                     ON CareGiverSchedule.SlotStatus = AppointmentStatusCodes.StatusCodeId 
                                     WHERE AppointmentStatusCodes.StatusCodeId = 0
                                     AND WorkDay>'{date}'
-                                    
-  '''.format(date = date.strftime("%Y-%m-%d"))
+                                    AND WorkDay<DATEADD(day,21,'{date}')
+                                '''.format(date = date.strftime("%Y-%m-%d"))
         try:
             cursor.execute(self.getAppointmentSQL)
+            print(date)
             rows  = cursor.fetchall()
-
+            print(rows)
             if len(rows)==0:
                 print("No slots available")
-                self.slotSchedulingId
+                return self.slotSchedulingId
             else:
                 self.slotSchedulingId = rows[0]["CaregiverSlotSchedulingId"]
                 self.sqltext = '''UPDATE CareGiverSchedule 
                                 SET CareGiverSchedule.SlotStatus = 1 
                                 WHERE CaregiverSlotSchedulingId = {id}'''.format(id =self.slotSchedulingId)
-
-                try:
-                    cursor.execute(self.sqltext)
-                    cursor.connection.commit()
-                    print('Query executed successfully')
-                    return self.slotSchedulingId
-                except pymssql.Error as db_err:
-                    print("Database Programming Error in SQL Query processing for Vaccine! ")
-                    print("Exception code: " + str(db_err.args[0]))
-                    if len(db_err.args) > 1:
-                        print("Exception message: " + db_err.args[1])
-                    print("SQL text that resulted in an Error: " + self.sqltext)
-                    return -1
+                cursor.execute(self.sqltext)
+                self.getAppointmentSQL = '''SELECT * 
+                                    FROM CareGiverSchedule 
+                                    WHERE CareGiverSchedule.CaregiverSlotSchedulingID = {id}
+                                    '''.format(id =  self.slotSchedulingId)
+                cursor.execute(self.getAppointmentSQL)
+                rows  = cursor.fetchall()
+                print("********",rows)
+                # cursor.connection.rollback()
+  
+                # cursor.execute(self.getAppointmentSQL)
+                # rows  = cursor.fetchall()
+                # print("********222",rows)
+                return self.slotSchedulingId
             
-
-        
         except pymssql.Error as db_err:
             print("Database Programming Error in SQL Query processing! ")
             print("Exception code: " + str(db_err.args[0]))
@@ -77,14 +77,11 @@ class VaccineReservationScheduler:
         returns -2 if the slotid parm is invalid '''
         # Note to students: this is a stub that needs to replaced with your code
 
-
-        # Patient: VaccineStatus = Scheduled
-
-        # Vaccine Inventory updated
-
-        # Vaccine Appointment Slot Status
-
         #Caregiver Schedule - Vaccine Appointment ID, Slot Status
+        self.sqltext = '''UPDATE CareGiverSchedule 
+                                SET CareGiverSchedule.SlotStatus = 2
+                                WHERE CaregiverSlotSchedulingId = {id}'''.format(id =self.slotSchedulingId)
+        cursor.execute(self.sqltext)
 
         if slotid < 1:
             return -2

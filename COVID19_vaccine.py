@@ -3,6 +3,9 @@ import pymssql
 class COVID19Vaccine:
 
     def __init__(self,name,supplier,doses_per_patient,days_between_doses,cursor):
+        self.name = name
+        self.doses_per_patient = doses_per_patient
+        self.days_between_doses = days_between_doses
         self.sqltext = "INSERT INTO Vaccines (VaccineName, VaccineSupplier, AvailableDoses, ReservedDoses, TotalDoses, DosesPerPatient, DaysBetweenDoses) VALUES ('" + name + "','" + supplier + "',0,0,0,{doses},{days})".format(doses =doses_per_patient,days = days_between_doses)
         try: 
             cursor.execute(self.sqltext)

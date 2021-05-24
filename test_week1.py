@@ -303,11 +303,16 @@ class TestPatients(unittest.TestCase):
                     # clear the tables before testing
                     clear_tables(sqlClient)
 
-                    # create a new Patient object
-                    self.patient_a = patient(name='dj',cursor=cursor)
-                    # create a new VaccineCaregiver object
+                     # create a new VaccineCaregiver object
                     self.caregiver_a = VaccineCaregiver(name="Steve Ma",
                                                     cursor=cursor)
+
+                    # create a new Patient object
+                    self.patient_a = patient(name='dj',cursor=cursor)
+
+                    # See what vaccines are available
+                    
+                   
                     #create a reservation 
                     self.reservation_a = VaccineReservationScheduler()
 

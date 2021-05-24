@@ -54,7 +54,7 @@ class VaccineCaregiver:
                     try:
                         cursor.execute(_sqltext2)
                         _startTime = _startTime + _appointmentDuration
-                        print("inserted")
+        
                     except pymssql.Error as db_err:
                         print("Database Programming Error in SQL Query processing for CareGiver scheduling slots! ")
                         print("Exception code: " + str(db_err.args[0]))
